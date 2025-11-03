@@ -1,0 +1,37 @@
+[project]
+name = "weather"
+version = "0.1.0"
+description = "weather using crewAI"
+authors = [{ name = "Your Name", email = "you@example.com" }]
+requires-python = ">=3.10,<3.14"
+dependencies = [
+    "crewai[tools]==1.2.1",
+    "geopy==2.4.1",
+    "parsedatetime==2.6",
+    "fastmcp==2.13.0.2",
+    "mcp==1.19.0"
+]
+
+[tool.setuptools]
+# Your package root is under src
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+# Find only the weather package
+where = ["src"]
+include = ["weather*"]
+
+[project.scripts]
+weather = "weather.main:run"
+run_crew = "weather.main:run"
+train = "weather.main:train"
+replay = "weather.main:replay"
+test = "weather.main:test"
+run_with_trigger = "weather.main:run_with_trigger"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.crewai]
+type = "crew"
