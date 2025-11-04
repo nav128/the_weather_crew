@@ -22,14 +22,16 @@ Error handling:
 
 from __future__ import annotations
 
-import json
 import os
+import sys
 import time
 import uuid
 from typing import Optional
 
 from fastapi import FastAPI, Depends, HTTPException, Header
 from pydantic import BaseModel, Field
+import builtins
+builtins.print = lambda *args, **kwargs: print(*args, file=sys.stderr, **kwargs)
 
 from weather.crew.flow import run_weather_pipeline
 
@@ -49,9 +51,6 @@ class WeatherRateLimitError(WeatherProviderError):
 
 class FlowError(RuntimeError):
 	"""Raised when the flow fails irrecoverably."""
-
-
-
 
 
 
