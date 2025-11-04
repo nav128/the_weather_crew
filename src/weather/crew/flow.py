@@ -34,7 +34,8 @@ def run_weather_pipeline(query: dict) -> dict:
     if "error" in context:
         return context
     FetchWeatherTask(agent).run(context)
-    context["summary"] = agent.execute_task(SummaryTask(agent), context)
+    summary_raw = agent.execute_task(SummaryTask(agent), context)
+    context["summary"] = json.loads(summary_raw[7:-3])
     return context
     
     
