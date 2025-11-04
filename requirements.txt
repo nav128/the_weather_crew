@@ -1,6 +1,5 @@
 pytest==8.4.2
-crewai==1.2.1
-crewai-tools==1.2.1
+
 fastapi==0.120.2
 geopy==2.4.1
 parsedatetime==2.6
