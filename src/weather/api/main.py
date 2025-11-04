@@ -30,8 +30,8 @@ from typing import Optional
 
 from fastapi import FastAPI, Depends, HTTPException, Header
 from pydantic import BaseModel, Field
-import builtins
-builtins.print = lambda *args, **kwargs: print(*args, file=sys.stderr, **kwargs)
+# import builtins
+# builtins.print = lambda *args, **kwargs: print(*args, file=sys.stderr, **kwargs)
 
 from weather.crew.flow import run_weather_pipeline
 
