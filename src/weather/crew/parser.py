@@ -25,7 +25,7 @@ from typing import Any, Dict, Optional, Union
 
 import geopy
 import parsedatetime
-from datetime import datetime
+from datetime import date, datetime
 from geopy.geocoders import Nominatim
 from weather.api.errors import WeatherValidationError, ProviderError
 
@@ -40,7 +40,7 @@ DATE_ORDER_ERROR = "end_date is before start_date"
 DATE_RANGE_ERROR = "date range exceeds 31 days"
 lOCATION_ERROR = "could not geocode location"
 FORMAT_HINT = "provide a query like: 'Weather in LOCATION from START_DATE to END_DATE, unit(metric|imperial defaults to metric)'"
-DATES_UNKNOWN_HINT = "provide dates in ISO format YYYY-MM-DD or readable dates"
+DATES_UNKNOWN_HINT = "provide dates in ISO format YYYY-MM-DD or readable dates got `{actual}`"
 DATES_RANGE_HINT = "got start: '{raw_start}', end: '{raw_end}'"
 LOCATION_HINT = "provide a valid location name or coordinates got {location}"
 GEOCODE_SERVICE_UNAVAILABLE = "geocoding service unavailable, please try again later"
@@ -49,7 +49,7 @@ GEOCODE_SERVICE_UNAVAILABLE = "geocoding service unavailable, please try again l
 ISO_DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}")
 # Single deterministic pattern to match: [free text][in LOCATION] from START to END [optional unit]
 PATTERN = re.compile(
-    r"(?i)\bin\s+(?P<location>.+?)\s+from\s+(?P<start>.+?)\s+to\s+(?P<end>.+?)(?:,\s*(?P<unit>metric|imperial))$"
+	r"(?i).*?\bin\s+(?P<location>.+?)\s+from\s+(?P<start>.+?)\s+to\s+(?P<end>[^,]+?)(?:,\s*(?P<unit>metric|imperial))?\s*$"
 )
 COORDINATES_RE = re.compile(r"^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$")
 
@@ -85,10 +85,11 @@ def parse_range(payload: Union[str, Dict[str, Any]]) -> Dict[str, Any]:
 	raw_start = m.group("start")
 	raw_end = m.group("end")
 	start_dt, sucsses_start = cal.parse(raw_start)
+	if not start_dt or sucsses_start == 0:
+		raise WeatherValidationError({"error": DATE_PARSE_ERROR, "hint": DATES_UNKNOWN_HINT.format(actual=raw_start)})
 	end_dt, sucsses_end = cal.parse(raw_end)
-
 	if not start_dt or not end_dt or sucsses_start == 0 or sucsses_end == 0:
-		raise WeatherValidationError({"error": DATE_PARSE_ERROR, "hint": DATES_UNKNOWN_HINT + f"\n()"})
+		raise WeatherValidationError({"error": DATE_PARSE_ERROR, "hint": DATES_UNKNOWN_HINT.format(actual=raw_end)})
 	start_date = datetime(start_dt.tm_year, start_dt.tm_mon, start_dt.tm_mday)
 	end_date = datetime(end_dt.tm_year, end_dt.tm_mon, end_dt.tm_mday)
 
@@ -99,7 +100,8 @@ def parse_range(payload: Union[str, Dict[str, Any]]) -> Dict[str, Any]:
 	span_days = (end_date - start_date).days + 1
 	if not 0 < span_days <= 31:
 		raise WeatherValidationError({"error": f"date range exceeds 31 days ({span_days} days)", "hint":  DATES_RANGE_HINT.format(raw_start=raw_start, raw_end=raw_end)})
-
+	if (end_date.date() - date.today()).days > 7:
+		raise WeatherValidationError({"error": "Weather Forecast provider does not support fore cast more the 7 days ahead", "hint": f"end date is: {end_date}"})
 	# extract location from the deterministic match
 	location = m.group("location").strip().strip()
 	if not COORDINATES_RE.match(location):
