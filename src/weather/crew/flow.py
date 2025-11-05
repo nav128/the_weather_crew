@@ -1,12 +1,12 @@
 
 import json
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 
 from weather.crew.mcp_client import mcp_client
 from weather.crew.tasks import FetchWeatherTask, ParseTask, SummaryTask
 
 # Load environment variables from .env file
-load_dotenv()
+# load_dotenv()
 from crewai import Agent
 
 
@@ -34,8 +34,16 @@ def run_weather_pipeline(query: dict) -> dict:
     if "error" in context:
         return context
     FetchWeatherTask(agent).run(context)
-    summary_raw = agent.execute_task(SummaryTask(agent), context)
-    context["summary"] = json.loads(summary_raw[7:-3])
+    summary_raw: str = agent.execute_task(SummaryTask(agent), context)
+    try:
+        context["summary"] = json.loads(summary_raw)
+    except Exception as e:
+        if summary_raw.startswith("```json") and summary_raw.endswith("```"):
+            try:
+                context["summary"] = json.loads(summary_raw[7:-3])
+            except:
+                raise 
+            
     return context
     
     

@@ -30,28 +30,12 @@ from typing import Optional
 
 from fastapi import FastAPI, Depends, HTTPException, Header
 from pydantic import BaseModel, Field
-# import builtins
-# builtins.print = lambda *args, **kwargs: print(*args, file=sys.stderr, **kwargs)
+from dotenv import load_dotenv
+load_dotenv()
+
 
 from weather.crew.flow import run_weather_pipeline
-
-
-class WeatherValidationError(ValueError):
-	"""Raised when the incoming request fails validation."""
-
-
-class WeatherProviderError(RuntimeError):
-	"""Raised when the provider (Open-Meteo) fails to fetch data."""
-
-
-class WeatherRateLimitError(WeatherProviderError):
-	"""Raised when the provider indicates rate limiting."""
-
-
-
-class FlowError(RuntimeError):
-	"""Raised when the flow fails irrecoverably."""
-
+from weather.api.errors import *
 
 
 app = FastAPI(title="Weather API")

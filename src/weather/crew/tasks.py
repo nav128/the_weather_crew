@@ -57,7 +57,7 @@ class SummaryTask(Task):
                 ● Call out any day with precip_mm >= 5 (or provider’s “rainy” threshold) and
                     wind_max_kph >= 40.
                 ● Provide a confidence score (0 to 1) for the summary accuracy.
-                ● Format the output as JSON with the structure:
+                ● Format the output as JSON-like string (not actual json value) with the structure:
                 {
                 "summary_text":"human-friendly synopsis (150–250 words)",
                 "highlights":{
