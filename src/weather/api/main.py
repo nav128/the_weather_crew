@@ -23,6 +23,7 @@ Error handling:
 from __future__ import annotations
 
 import json
+import logging
 import os
 import sys
 import time
@@ -36,7 +37,7 @@ if os.environ.get("RUN_MODE", "") != "REMOTE":
 	from dotenv import load_dotenv
 	load_dotenv()
 
-
+from weather.api._logging import LogDuration
 from weather.crew.flow import run_weather_pipeline
 from weather.api.errors import *
 
@@ -69,24 +70,25 @@ def healthz():
 def weather_ask(req: dict, api_key: Optional[str] = Depends(get_api_key)):
 	request_id = str(uuid.uuid4())
 	start = time.time()
-	try:
-		out = run_weather_pipeline(req)
-	except WeatherValidationError as exc:
-		raise HTTPException(status_code=400, detail=str(exc)) from exc
-	except WeatherRateLimitError as exc:
-		raise HTTPException(status_code=429, detail=str(exc)) from exc
-	except ProviderError as exc:
-		raise HTTPException(status_code=502, detail=str(exc)) from exc
-	except FlowError as exc:
-		raise HTTPException(status_code=500, detail=str(exc)) from exc
-	except Exception as exc:
-		raise HTTPException(status_code=500, detail="internal error" + "\n\n" + str(exc)) from exc
+	with LogDuration(f"Request id: {request_id}"):
+		try:
+			out = run_weather_pipeline(req)
+		except WeatherValidationError as exc:
+			raise HTTPException(status_code=400, detail=str(exc)) from exc
+		except WeatherRateLimitError as exc:
+			raise HTTPException(status_code=429, detail=str(exc)) from exc
+		except ProviderError as exc:
+			raise HTTPException(status_code=502, detail=str(exc)) from exc
+		except FlowError as exc:
+			raise HTTPException(status_code=500, detail=str(exc)) from exc
+		except Exception as exc:
+			raise HTTPException(status_code=500, detail="internal error" + "\n\n" + str(exc)) from exc
 
-	latency_ms = int((time.time() - start) * 1000)
+		latency_ms = int((time.time() - start) * 1000)
 
-	response = {
-		**out,
-		"latency_ms": latency_ms,
-		"request_id": request_id,
-	}
+		response = {
+			**out,
+			"latency_ms": latency_ms,
+			"request_id": request_id,
+		}
 	return HTMLResponse(content=json.dumps(response), status_code=200)

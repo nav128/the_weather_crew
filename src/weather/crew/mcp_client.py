@@ -2,15 +2,14 @@ import json
 import subprocess
 from weather.api.errors import ProviderError
 from weather.mcp_weather.cache import weather_cache
+from weather.api._logging import LogDuration, logging, logger
 
 
 
 def send_message(proc, message):
-    print("sending message:", message)
     proc.stdin.write(json.dumps(message) + "\n")
     proc.stdin.flush()
     x = proc.stdout.readline()
-    print("received message:", x)
     return json.loads(x)
 
 def mcp_client(params: dict):
@@ -25,6 +24,7 @@ def mcp_client(params: dict):
     key = f"{params['location']}:{params['start_date']}:{params['end_date']}:{params['units']}"
     res = None
     if days := weather_cache.get(key):
+        logger.log(logging.INFO, f"...found cache for {key}, not calling mcp")
         res =  {
 			"daily": days,
 			"source": "cached - open-meteo"
@@ -36,13 +36,13 @@ def mcp_client(params: dict):
               "method": "tools"
               })['result'] :
               raise ProviderError("MCP server does not support fetch_weather tool")
-          
-          res = send_message(ServerProcess, {
-              "jsonrpc": "2.0",
-              "id": 2,
-              "method": "fetch_weather",
-              "params": params
-              })
+          with LogDuration("calling mcp", 2):
+            res = send_message(ServerProcess, {
+                "jsonrpc": "2.0",
+                "id": 2,
+                "method": "fetch_weather",
+                "params": params
+                })
           if error := res.get("error"):
               raise ProviderError(f"MCP error: {error}")
           weather_cache.set(key, res["result"]["daily"])
