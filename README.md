@@ -15,7 +15,7 @@ python 3.12
 - `uvicorn weather.api.main:app`
 
 ### Use docker image
-docker image url is `docker.io/batmanmoshe/moshe:crewaish`
+docker image url is `docker.io/batmanmoshe/moshecrewaish`
 #### Run on your machine
 `docker run -e OPENAI_API_KEY=${OPENAI_API_KEY} -e MODEL=${MODEL} -p 8080:8080 {DOCKER_IMAGE _URL}`
 
