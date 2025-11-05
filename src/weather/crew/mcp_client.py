@@ -1,9 +1,7 @@
 import json
 import subprocess
+from weather.api.errors import ProviderError
 from weather.mcp_weather.cache import weather_cache
-
-
-
 
 
 
@@ -37,7 +35,7 @@ def mcp_client(params: dict):
               "id": 1,
               "method": "tools"
               })['result'] :
-              raise RuntimeError("MCP does not support fetch_weather tool")
+              raise ProviderError("MCP server does not support fetch_weather tool")
           
           res = send_message(ServerProcess, {
               "jsonrpc": "2.0",
@@ -46,7 +44,7 @@ def mcp_client(params: dict):
               "params": params
               })
           if error := res.get("error"):
-              raise RuntimeError(f"MCP error: {error}")
+              raise ProviderError(f"MCP error: {error}")
           weather_cache.set(key, res["result"]["daily"])
         
     ServerProcess.terminate()

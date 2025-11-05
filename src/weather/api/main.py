@@ -69,7 +69,7 @@ def weather_ask(req: dict, ):#api_key: Optional[str] = Depends(get_api_key)
 		raise HTTPException(status_code=400, detail=str(exc)) from exc
 	except WeatherRateLimitError as exc:
 		raise HTTPException(status_code=429, detail=str(exc)) from exc
-	except WeatherProviderError as exc:
+	except ProviderError as exc:
 		raise HTTPException(status_code=502, detail=str(exc)) from exc
 	except FlowError as exc:
 		raise HTTPException(status_code=500, detail=str(exc)) from exc

@@ -2,11 +2,11 @@ class WeatherValidationError(ValueError):
 	"""Raised when the incoming request fails validation."""
 
 
-class WeatherProviderError(RuntimeError):
-	"""Raised when the provider (Open-Meteo) fails to fetch data."""
+class ProviderError(RuntimeError):
+	"""Raised when the provider (geopy, Open-Meteo) fails to fetch data."""
 
 
-class WeatherRateLimitError(WeatherProviderError):
+class WeatherRateLimitError(ProviderError):
 	"""Raised when the provider indicates rate limiting."""
 
 class FlowError(RuntimeError):

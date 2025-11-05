@@ -15,11 +15,7 @@ class ParseTask(Task):
 
     def run(self, context):
         query = context.get("query", "")
-        res = parse_range(query)
-        if "error" in res:
-            context["error"] = res
-        else:
-            context["params"] = res
+        context["params"] = parse_range(query)
 
 
 class FetchWeatherTask(Task):
