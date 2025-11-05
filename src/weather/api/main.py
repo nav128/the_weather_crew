@@ -22,6 +22,7 @@ Error handling:
 
 from __future__ import annotations
 
+import json
 import os
 import sys
 import time
@@ -29,9 +30,11 @@ import uuid
 from typing import Optional
 
 from fastapi import FastAPI, Depends, HTTPException, Header
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field
-from dotenv import load_dotenv
-load_dotenv()
+if os.environ.get("RUN_MODE", "") != "REMOTE":
+	from dotenv import load_dotenv
+	load_dotenv()
 
 
 from weather.crew.flow import run_weather_pipeline
@@ -53,14 +56,17 @@ def get_api_key(x_api_key: Optional[str] = Header(None)) -> Optional[str]:
 			raise HTTPException(status_code=401, detail="invalid or missing API key")
 	return x_api_key
 
+@app.get("/")
+def root():
+	return HTMLResponse(content="WhoThat?\n", status_code=200)
 
 @app.get("/healthz")
 def healthz():
-	return {"ok": True, "message": "Service is healthy"}
+	return HTMLResponse(content="Service is healthy\n", status_code=200)
 
 
 @app.post("/v1/weather/ask")
-def weather_ask(req: dict, ):#api_key: Optional[str] = Depends(get_api_key)
+def weather_ask(req: dict, api_key: Optional[str] = Depends(get_api_key)):
 	request_id = str(uuid.uuid4())
 	start = time.time()
 	try:
@@ -83,4 +89,4 @@ def weather_ask(req: dict, ):#api_key: Optional[str] = Depends(get_api_key)
 		"latency_ms": latency_ms,
 		"request_id": request_id,
 	}
-	return response
+	return HTMLResponse(content=json.dumps(response), status_code=200)

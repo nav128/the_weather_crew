@@ -9,8 +9,13 @@ WORKDIR /the_weather_crew
 # pip install it
 RUN pip install .
 
+# # optionaly export the security key for the application
+# RUN export WEATHER_API_KEY=${WEATHER_API_KEY}
+# # Or set it in you host runner variables
+# export env var RUN_MODE = REMOTE
+RUN export RUN_MODE="REMOTE"
 # expose port 8000
-EXPOSE 8000
+EXPOSE 8080
 
 # uv run the api server and on port 8000 
-CMD ["uvicorn", "weather.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "weather.api.main:app", "--host", "0.0.0.0", "--port", "8080"]
